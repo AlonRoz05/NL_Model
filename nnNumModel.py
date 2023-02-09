@@ -7,6 +7,7 @@ from timeit import default_timer as timer
 from tqdm.auto import tqdm
 from helper_TMLFN import accuracy_fn, print_train_time, train_step, test_step
 from PIL import Image
+from pathlib import Path
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -63,4 +64,10 @@ img = Image.open("./test_img/img_1.jpg")
 img_tensor = ToTensor()(img).unsqueeze(0).to(device)
 model_choice = model_1(img_tensor).argmax(dim=1)
 print(f"The model's choice: {model_choice.item()}")
+
+MODEL_PATH = Path("./models")
+MODEL_PATH.mkdir(parents=True, exist_ok=True)
+MODEL_NAME = "numModel_1.pth"
+MODEL_SAVE_PATH = MODEL_PATH / MODEL_NAME
+torch.save(model_1.state_dict(), MODEL_SAVE_PATH)
 
