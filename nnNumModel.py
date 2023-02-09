@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torchvision
 from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision.transforms import ToTensor
@@ -14,13 +13,13 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 train_dataset = datasets.MNIST(root="./data",
                                 train=True, 
                                 download=True, 
-                                transform=torchvision.transforms.ToTensor(),
+                                transform=ToTensor(),
                                 target_transform=None)
 
 test_dataset = datasets.MNIST(root="./data",
                                 train=False, 
                                 download=True, 
-                                transform=torchvision.transforms.ToTensor(),
+                                transform=ToTensor(),
                                 target_transform=None)
 
 BATCH_SIZE = 32
@@ -49,12 +48,10 @@ model_1 = nnNumModel(input_size=28*28, hidden_units=8, output_size=len(class_nam
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model_1.parameters(), lr=0.01)
 
-epochs = 10
-
 train_start_timer = timer()
 
-for epoch in tqdm(range(epochs)):
-    print(f"Epoch {epoch}------------------------")
+for epoch in tqdm(range(10)):
+    print(f"Epoch {epoch}\n------------------------")
     train_step(model=model_1, data_loader=train_dataloader, loss_fn=loss_fn, optimizer=optimizer, accuracy_fn=accuracy_fn, device=device)
     test_step(model=model_1, test_data_loader=test_dataloader, loss_fn=loss_fn, accuracy_fn=accuracy_fn, device=device)
 
@@ -64,7 +61,8 @@ total_train_time = print_train_time(train_start_timer, train_end_timer, device)
 model_result = eval_model(model_1, test_dataloader, loss_fn, accuracy_fn)
 print(model_result)
 
-img = Image.open("img_1.jpg")
+img = Image.open("./test_img/img_1.jpg")
 img_tensor = ToTensor()(img).unsqueeze(0).to(device)
-print(model_1(img_tensor).argmax(dim=1))
+model_choice = model_1(img_tensor).argmax(dim=1)
+print(f"The model's choice: {model_choice.item()}")
 
