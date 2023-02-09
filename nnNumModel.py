@@ -53,7 +53,7 @@ train_model = False
 if train_model:
     train_start_timer = timer()
 
-    for epoch in tqdm(range(10)):
+    for epoch in tqdm(range(25)):
         print(f"Epoch {epoch}\n------------------------")
         train_step(model=model_1, data_loader=train_dataloader, loss_fn=loss_fn, optimizer=optimizer, accuracy_fn=accuracy_fn, device=device)
         test_step(model=model_1, test_data_loader=test_dataloader, loss_fn=loss_fn, accuracy_fn=accuracy_fn, device=device)
