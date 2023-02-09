@@ -5,7 +5,7 @@ from torchvision import datasets
 from torchvision.transforms import ToTensor
 from timeit import default_timer as timer
 from tqdm.auto import tqdm
-from helper_TMLFN import accuracy_fn, print_train_time, eval_model, train_step, test_step
+from helper_TMLFN import accuracy_fn, print_train_time, train_step, test_step
 from PIL import Image
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -58,8 +58,6 @@ for epoch in tqdm(range(10)):
 train_end_timer = timer()
 
 total_train_time = print_train_time(train_start_timer, train_end_timer, device)
-model_result = eval_model(model_1, test_dataloader, loss_fn, accuracy_fn)
-print(model_result)
 
 img = Image.open("./test_img/img_1.jpg")
 img_tensor = ToTensor()(img).unsqueeze(0).to(device)

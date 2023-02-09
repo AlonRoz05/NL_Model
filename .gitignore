@@ -2,3 +2,4 @@
 .vscode
 data
 test_img
+__pycache__
