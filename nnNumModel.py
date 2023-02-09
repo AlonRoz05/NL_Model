@@ -44,7 +44,7 @@ class nnNumModel(nn.Module):
         return self.layer_stack(x)
 
 torch.manual_seed(42)
-model_1 = nnNumModel(input_size=28*28, hidden_units=8, output_size=len(class_names)).to(device)
+model_1 = nnNumModel(input_size=28*28, hidden_units=16, output_size=len(class_names)).to(device)
 
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model_1.parameters(), lr=0.01)
@@ -69,7 +69,7 @@ if train_model:
     torch.save(model_1.state_dict(), MODEL_SAVE_PATH)
 
 else:
-    loaded_model_1 = nnNumModel(input_size=28*28, hidden_units=8, output_size=len(class_names))
+    loaded_model_1 = nnNumModel(input_size=28*28, hidden_units=16, output_size=len(class_names))
     loaded_model_1.load_state_dict(torch.load("./models/numModel_1.pth"))
     loaded_model_1.to(device)
 
