@@ -59,3 +59,5 @@ def test_step(model: torch.nn.Module, test_data_loader: torch.utils.data.DataLoa
         test_loss /= len(test_data_loader)
         test_accuracy /= len(test_data_loader)
         print(f"Test loss: {test_loss:.5f} | Test accuracy: {test_accuracy:.2f}%\n")
+
+

@@ -5,6 +5,7 @@ from torchvision import datasets
 from torchvision.transforms import ToTensor
 from timeit import default_timer as timer
 from tqdm.auto import tqdm
+import matplotlib.pyplot as plt
 from helper_TMLFN import accuracy_fn, print_train_time, train_step, test_step
 from PIL import Image
 from pathlib import Path
@@ -31,20 +32,35 @@ test_dataloader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffl
 train_features_batch, train_labels_batch = next(iter(train_dataloader))
 
 class nnNumModel(nn.Module):
-    def __init__(self, input_size: int, hidden_units: int, output_size: int):
+    def __init__(self, input_shape: int, hidden_units: int, output_shape: int):
         super().__init__()
-        self.layer_stack = nn.Sequential(
+        self.conv_block_1 = nn.Sequential(
+            nn.Conv2d(in_channels=input_shape, out_channels=hidden_units, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=hidden_units, out_channels=hidden_units, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2)
+        )
+        self.conv_block_2 = nn.Sequential(
+            nn.Conv2d(in_channels=hidden_units, out_channels=hidden_units, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=hidden_units, out_channels=hidden_units, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2)
+        )
+        self.classifier = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(input_size, hidden_units),
-            nn.Linear(hidden_units, hidden_units),
-            nn.Linear(hidden_units, output_size)
+            nn.Linear(hidden_units*7*7, output_shape)
         )
 
     def forward(self, x):
-        return self.layer_stack(x)
+        x = self.conv_block_1(x)
+        x = self.conv_block_2(x)
+        x = self.classifier(x)
+        return x
 
 torch.manual_seed(42)
-model_1 = nnNumModel(input_size=28*28, hidden_units=16, output_size=len(class_names)).to(device)
+model_1 = nnNumModel(input_shape=1, hidden_units=10, output_shape=len(class_names)).to(device)
 
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model_1.parameters(), lr=0.01)
@@ -53,7 +69,7 @@ train_model = False
 if train_model:
     train_start_timer = timer()
 
-    for epoch in tqdm(range(25)):
+    for epoch in tqdm(range(5)):
         print(f"Epoch {epoch}\n------------------------")
         train_step(model=model_1, data_loader=train_dataloader, loss_fn=loss_fn, optimizer=optimizer, accuracy_fn=accuracy_fn, device=device)
         test_step(model=model_1, test_data_loader=test_dataloader, loss_fn=loss_fn, accuracy_fn=accuracy_fn, device=device)
@@ -69,7 +85,7 @@ if train_model:
     torch.save(model_1.state_dict(), MODEL_SAVE_PATH)
 
 else:
-    loaded_model_1 = nnNumModel(input_size=28*28, hidden_units=16, output_size=len(class_names))
+    loaded_model_1 = nnNumModel(input_shape=1, hidden_units=10, output_shape=len(class_names))
     loaded_model_1.load_state_dict(torch.load("./models/numModel_1.pth"))
     loaded_model_1.to(device)
 
