@@ -68,11 +68,11 @@ loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model_1.parameters(), lr=0.01)
 
 train_model = False
-check_img = False
+show_model_quality = False
 if train_model:
     train_start_timer = timer()
 
-    for epoch in tqdm(range(5)):
+    for epoch in tqdm(range(20)):
         print(f"Epoch {epoch}\n------------------------")
         train_step(model=model_1, data_loader=train_dataloader, loss_fn=loss_fn, optimizer=optimizer, accuracy_fn=accuracy_fn, device=device)
         test_step(model=model_1, test_data_loader=test_dataloader, loss_fn=loss_fn, accuracy_fn=accuracy_fn, device=device)
@@ -94,7 +94,7 @@ else:
     loaded_model_1.load_state_dict(torch.load("./models/numModel_1.pth"))
     loaded_model_1.to(device)
 
-    if check_img == False:
+    if show_model_quality:
         test_samples = []
         test_labels = []
         for sample, label in random.sample(list(test_dataset), k=9):
