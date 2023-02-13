@@ -5,10 +5,12 @@ from torchvision import datasets
 from torchvision.transforms import ToTensor
 from timeit import default_timer as timer
 from tqdm.auto import tqdm
-import matplotlib.pyplot as plt
-from helper_TMLFN import accuracy_fn, print_train_time, train_step, test_step
+from helper_TMLFN import accuracy_fn, print_train_time, train_step, test_step, eval_model, make_predictions, plot_model_predictions, p_confusion_matrix
 from PIL import Image
 from pathlib import Path
+import random
+from torchmetrics import ConfusionMatrix
+from mlxtend.plotting import plot_confusion_matrix
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -66,6 +68,7 @@ loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model_1.parameters(), lr=0.01)
 
 train_model = False
+check_img = False
 if train_model:
     train_start_timer = timer()
 
@@ -77,6 +80,8 @@ if train_model:
     train_end_timer = timer()
 
     total_train_time = print_train_time(train_start_timer, train_end_timer, device)
+    model_result = eval_model(model=model_1, data_loader=train_dataloader, loss_fn=loss_fn, accuracy_fn=accuracy_fn)
+    print(model_result)
 
     MODEL_PATH = Path("./models")
     MODEL_PATH.mkdir(parents=True, exist_ok=True)
@@ -89,9 +94,23 @@ else:
     loaded_model_1.load_state_dict(torch.load("./models/numModel_1.pth"))
     loaded_model_1.to(device)
 
-    img = Image.open("./test_img/img_1.jpg")
-    img_tensor = ToTensor()(img).unsqueeze(0).to(device)
-    model_choice = loaded_model_1(img_tensor).argmax(dim=1)
-    print(f"The model's choice: {model_choice.item()}")
+    if check_img == False:
+        test_samples = []
+        test_labels = []
+        for sample, label in random.sample(list(test_dataset), k=9):
+            test_samples.append(sample)
+            test_labels.append(label)
+
+        pred_probs = make_predictions(model=loaded_model_1, data=test_samples, device=device)
+        pred_classes = pred_probs.argmax(dim=1)
+
+        plot_model_predictions(pred_probs=pred_probs, pred_classes=pred_classes, test_labels=test_labels, test_samples=test_samples, class_names=class_names)
+        p_confusion_matrix(model=loaded_model_1, test_data_loader=test_dataloader, data=test_dataset, class_names=class_names, device=device)
+
+    else:
+        img = Image.open("./test_img/img_1.jpg")
+        img_tensor = ToTensor()(img).unsqueeze(0).to(device)
+        model_choice = loaded_model_1(img_tensor).argmax(dim=1)
+        print(f"The model's choice: {model_choice.item()}")
 
 
