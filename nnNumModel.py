@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
 from torchvision import datasets
+from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor
 from timeit import default_timer as timer
 from tqdm.auto import tqdm
@@ -9,8 +9,6 @@ from helper_TMLFN import accuracy_fn, print_train_time, train_step, test_step, e
 from PIL import Image
 from pathlib import Path
 import random
-from torchmetrics import ConfusionMatrix
-from mlxtend.plotting import plot_confusion_matrix
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
