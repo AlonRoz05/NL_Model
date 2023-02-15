@@ -12,13 +12,13 @@ import random
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-train_dataset = datasets.MNIST(root="./data/MNIST",
+train_dataset = datasets.MNIST(root="./data",
                                 train=True, 
                                 download=True, 
                                 transform=ToTensor(),
                                 target_transform=None)
 
-test_dataset = datasets.MNIST(root="./data.MNIST",
+test_dataset = datasets.MNIST(root="./data",
                                 train=False, 
                                 download=True, 
                                 transform=ToTensor(),
