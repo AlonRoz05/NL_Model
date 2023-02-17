@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torchvision
 from torchvision import datasets
 from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor
@@ -12,16 +13,26 @@ import random
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-train_dataset = datasets.MNIST(root="./data",
+train_dataset = datasets.EMNIST(root="./data",
+                                split="balanced",
                                 train=True, 
                                 download=True, 
-                                transform=ToTensor(),
+                                transform=torchvision.transforms.Compose([
+                                    lambda img: torchvision.transforms.functional.rotate(img, -90),
+                                    lambda img: torchvision.transforms.functional.hflip(img),
+                                    ToTensor()
+                                ]),
                                 target_transform=None)
 
-test_dataset = datasets.MNIST(root="./data",
+test_dataset = datasets.EMNIST(root="./data",
+                                split="balanced",
                                 train=False, 
                                 download=True, 
-                                transform=ToTensor(),
+                                transform=torchvision.transforms.Compose([
+                                    lambda img: torchvision.transforms.functional.rotate(img, -90),
+                                    lambda img: torchvision.transforms.functional.hflip(img),
+                                    ToTensor()
+                                ]),
                                 target_transform=None)
 
 BATCH_SIZE = 32
@@ -31,7 +42,7 @@ train_dataloader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuf
 test_dataloader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 train_features_batch, train_labels_batch = next(iter(train_dataloader))
 
-class nnNumModel(nn.Module):
+class nn_NL_Model(nn.Module):
     def __init__(self, input_shape: int, hidden_units: int, output_shape: int):
         super().__init__()
         self.conv_block_1 = nn.Sequential(
@@ -60,7 +71,7 @@ class nnNumModel(nn.Module):
         return x
 
 torch.manual_seed(42)
-model_1 = nnNumModel(input_shape=1, hidden_units=10, output_shape=len(class_names)).to(device)
+model_1 = nn_NL_Model(input_shape=1, hidden_units=10, output_shape=len(class_names)).to(device)
 
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model_1.parameters(), lr=0.01)
@@ -83,13 +94,13 @@ if train_model:
 
     MODEL_PATH = Path("./models")
     MODEL_PATH.mkdir(parents=True, exist_ok=True)
-    MODEL_NAME = "numModel_1.pth"
+    MODEL_NAME = "nl_model_1.pth"
     MODEL_SAVE_PATH = MODEL_PATH / MODEL_NAME
     torch.save(model_1.state_dict(), MODEL_SAVE_PATH)
 
 else:
-    loaded_model_1 = nnNumModel(input_shape=1, hidden_units=10, output_shape=len(class_names))
-    loaded_model_1.load_state_dict(torch.load("./models/numModel_1.pth"))
+    loaded_model_1 = nn_NL_Model(input_shape=1, hidden_units=10, output_shape=len(class_names))
+    loaded_model_1.load_state_dict(torch.load("./models/nl_model_1.pth"))
     loaded_model_1.to(device)
 
     if show_model_quality:
@@ -109,6 +120,6 @@ else:
         img = Image.open("./test_img/img_1.jpg")
         img_tensor = ToTensor()(img).unsqueeze(0).to(device)
         model_choice = loaded_model_1(img_tensor).argmax(dim=1)
-        print(f"The model's choice: {model_choice.item()}")
+        print(f"The model's choice: {class_names[model_choice.item()]}")
 
 
