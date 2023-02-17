@@ -1,5 +1,5 @@
 ### NumModel:
-The NumModel can recognize handwritten digits.
+The NumModel can recognize handwritten letters and digits.
 
 ---
 
