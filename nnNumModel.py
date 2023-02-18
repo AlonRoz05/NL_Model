@@ -121,4 +121,3 @@ else:
         model_choice = loaded_model_1(img_tensor).argmax(dim=1)
         print(f"The model's choice: {class_names[model_choice.item()]}")
 
-

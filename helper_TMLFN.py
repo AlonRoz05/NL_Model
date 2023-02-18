@@ -5,16 +5,19 @@ from torchmetrics import ConfusionMatrix
 from mlxtend.plotting import plot_confusion_matrix
 
 def accuracy_fn(y_true, y_pred):
+    """Returns the accuracy of the given y_true and y_pred values"""
     correct = torch.eq(y_true, y_pred).sum().item()
     accuracy = (correct / len(y_true)) * 100
     return accuracy
 
 def print_train_time(start: float, end: float, device: torch.device = None):
+    """Prints the train time for a given training end and start time"""
     total_time = end - start
     print(f"Training time on {device}: {total_time:.3f} seconds")
     return total_time
 
 def eval_model(model: torch.nn.Module, data_loader: torch.utils.data.DataLoader, loss_fn: torch.nn.Module, accuracy_fn):
+    """Evaluates the model on a given training data loader and loss function and return the results"""
     loss, acc = 0, 0
     model.eval()
     with torch.inference_mode():
@@ -32,6 +35,7 @@ def eval_model(model: torch.nn.Module, data_loader: torch.utils.data.DataLoader,
             "model_accuracy": acc}
 
 def train_step(model: torch.nn.Module, data_loader: torch.utils.data.DataLoader, loss_fn: torch.nn.Module, optimizer: torch.optim.Optimizer, accuracy_fn, device):
+    """Trains a model on a given data loader"""
     train_loss, train_acc = 0, 0
     model.train()
     for batch, (X, y) in enumerate(data_loader):
@@ -50,6 +54,7 @@ def train_step(model: torch.nn.Module, data_loader: torch.utils.data.DataLoader,
     print(f"Train loss: {train_loss:.5f} | Train accuracy: {train_acc:.2f}%")
 
 def test_step(model: torch.nn.Module, test_data_loader: torch.utils.data.DataLoader, loss_fn: torch.nn.Module, accuracy_fn, device):
+    """Tests how good the model is trained"""
     test_loss, test_accuracy = 0, 0
     model.eval()
     with torch.inference_mode():
@@ -65,6 +70,7 @@ def test_step(model: torch.nn.Module, test_data_loader: torch.utils.data.DataLoa
         print(f"Test loss: {test_loss:.5f} | Test accuracy: {test_accuracy:.2f}%\n")
 
 def make_predictions(model: torch.nn.Module, data: list, device):
+    """doing predictions on 9 images from dataset"""
     pred_probs = []
     model.to(device)
     model.eval()
@@ -79,6 +85,7 @@ def make_predictions(model: torch.nn.Module, data: list, device):
     return torch.stack(pred_probs)
 
 def plot_model_predictions(pred_probs, pred_classes, test_labels, test_samples, class_names):
+    """Plots the predictions from test_samples"""
     plt.figure(figsize=(9,9))
     nrows = 3
     ncols = 3
@@ -99,6 +106,7 @@ def plot_model_predictions(pred_probs, pred_classes, test_labels, test_samples, 
 
 
 def p_confusion_matrix(model: torch.nn.Module, test_data_loader: torch.utils.data.DataLoader, data, class_names, device):
+    """Plots confusion matrix"""
     y_preds = []
     model.eval()
     with torch.inference_mode():
