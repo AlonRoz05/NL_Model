@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
-import torchvision
-from torchvision import datasets
+from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor
 from timeit import default_timer as timer
@@ -17,9 +16,9 @@ train_dataset = datasets.EMNIST(root="./data",
                                 split="balanced",
                                 train=True, 
                                 download=True, 
-                                transform=torchvision.transforms.Compose([
-                                    lambda img: torchvision.transforms.functional.rotate(img, -90),
-                                    lambda img: torchvision.transforms.functional.hflip(img),
+                                transform=transforms.Compose([
+                                    lambda img: transforms.functional.rotate(img, -90),
+                                    lambda img: transforms.functional.hflip(img),
                                     ToTensor()
                                 ]),
                                 target_transform=None)
@@ -28,9 +27,9 @@ test_dataset = datasets.EMNIST(root="./data",
                                 split="balanced",
                                 train=False, 
                                 download=True, 
-                                transform=torchvision.transforms.Compose([
-                                    lambda img: torchvision.transforms.functional.rotate(img, -90),
-                                    lambda img: torchvision.transforms.functional.hflip(img),
+                                transform=transforms.Compose([
+                                    lambda img: transforms.functional.rotate(img, -90),
+                                    lambda img: transforms.functional.hflip(img),
                                     ToTensor()
                                 ]),
                                 target_transform=None)
