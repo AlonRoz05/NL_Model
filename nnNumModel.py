@@ -3,9 +3,7 @@ import torch.nn as nn
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor
-from timeit import default_timer as timer
-from tqdm.auto import tqdm
-from helper_TMLFN import accuracy_fn, print_train_time, train_step, test_step, eval_model, make_predictions, plot_model_predictions, p_confusion_matrix
+from helper_TMLFN import make_predictions, plot_model_predictions, p_confusion_matrix, train_model
 from PIL import Image
 from pathlib import Path
 import random
@@ -69,28 +67,22 @@ class nn_NL_Model(nn.Module):
         x = self.classifier(x)
         return x
 
-torch.manual_seed(42)
 model_1 = nn_NL_Model(input_shape=1, hidden_units=10, output_shape=len(class_names)).to(device)
 
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model_1.parameters(), lr=0.01)
 
-train_model = False
+train = True
 show_model_quality = False
-if train_model:
-    train_start_timer = timer()
-
-    for epoch in tqdm(range(20)):
-        print(f"Epoch {epoch}\n------------------------")
-        train_step(model=model_1, data_loader=train_dataloader, loss_fn=loss_fn, optimizer=optimizer, accuracy_fn=accuracy_fn, device=device)
-        test_step(model=model_1, test_data_loader=test_dataloader, loss_fn=loss_fn, accuracy_fn=accuracy_fn, device=device)
-
-    train_end_timer = timer()
-
-    total_train_time = print_train_time(train_start_timer, train_end_timer, device)
-    model_result = eval_model(model=model_1, data_loader=train_dataloader, loss_fn=loss_fn, accuracy_fn=accuracy_fn)
-    print(model_result)
-
+if train:
+    train_model(model=model_1, 
+                train_dataloader=train_dataloader, 
+                test_dataloader=test_dataloader, 
+                loss_fn=loss_fn, 
+                optimizer=optimizer,
+                epochs=10, 
+                device=device)
+    
     MODEL_PATH = Path("./models")
     MODEL_PATH.mkdir(parents=True, exist_ok=True)
     MODEL_NAME = "nl_model_1.pth"

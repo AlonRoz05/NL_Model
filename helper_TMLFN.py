@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
 from torchmetrics import ConfusionMatrix
 from mlxtend.plotting import plot_confusion_matrix
+from timeit import default_timer as timer
 
 def accuracy_fn(y_true, y_pred):
     """Returns the accuracy of the given y_true and y_pred values"""
@@ -42,7 +43,7 @@ def train_step(model: torch.nn.Module, data_loader: torch.utils.data.DataLoader,
         X, y = X.to(device), y.to(device)
         y_pred = model(X)
         loss = loss_fn(y_pred, y)
-        train_loss += loss
+        train_loss += loss  
         train_acc += accuracy_fn(y_true=y, y_pred=y_pred.argmax(dim=1))
 
         optimizer.zero_grad()
@@ -58,7 +59,7 @@ def test_step(model: torch.nn.Module, test_data_loader: torch.utils.data.DataLoa
     test_loss, test_accuracy = 0, 0
     model.eval()
     with torch.inference_mode():
-        for X, y in test_data_loader:
+        for batch, (X, y) in enumerate(test_data_loader):
             X, y = X.to(device), y.to(device)
             test_pred = model(X)
 
@@ -68,6 +69,21 @@ def test_step(model: torch.nn.Module, test_data_loader: torch.utils.data.DataLoa
         test_loss /= len(test_data_loader)
         test_accuracy /= len(test_data_loader)
         print(f"Test loss: {test_loss:.5f} | Test accuracy: {test_accuracy:.2f}%\n")
+
+def train_model(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoader, test_dataloader: torch.utils.data.DataLoader, loss_fn: torch.nn.Module, optimizer: torch.optim.Optimizer, epochs: int, device):
+    start_training_time = timer()
+
+    for epoch in tqdm(range(epochs)):
+        print(f"Epoch: {epoch}\n--------------------------------")
+        train_step(model=model, data_loader=train_dataloader, loss_fn=loss_fn, optimizer=optimizer, accuracy_fn=accuracy_fn, device=device)
+        test_step(model=model, test_data_loader=test_dataloader, loss_fn=loss_fn, accuracy_fn=accuracy_fn, device=device)
+
+    end_training_time = timer()
+
+    total_train_time = print_train_time(start=start_training_time, end=end_training_time, device=device)
+    model_results = eval_model(model=model, data_loader=train_dataloader, loss_fn=loss_fn, accuracy_fn=accuracy_fn)
+    print(model_results)
+
 
 def make_predictions(model: torch.nn.Module, data: list, device):
     """doing predictions on 9 images from dataset"""
