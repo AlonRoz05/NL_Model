@@ -3,14 +3,15 @@ import torch.nn as nn
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor
-from helper_TMLFN import make_predictions, plot_model_predictions, p_confusion_matrix, train_model
+from timeit import default_timer as timer
 from PIL import Image
 from pathlib import Path
+import helper_TMLFN as helper_fn
 import random
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-train_dataset = datasets.EMNIST(root="./data",
+train_dataset = datasets.MNIST(root="./data",
                                 split="balanced",
                                 train=True, 
                                 download=True, 
@@ -21,7 +22,7 @@ train_dataset = datasets.EMNIST(root="./data",
                                 ]),
                                 target_transform=None)
 
-test_dataset = datasets.EMNIST(root="./data",
+test_dataset = datasets.MNIST(root="./data",
                                 split="balanced",
                                 train=False, 
                                 download=True, 
@@ -37,7 +38,6 @@ class_names = train_dataset.classes
 
 train_dataloader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 test_dataloader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
-train_features_batch, train_labels_batch = next(iter(train_dataloader))
 
 class nn_NL_Model(nn.Module):
     def __init__(self, input_shape: int, hidden_units: int, output_shape: int):
@@ -62,27 +62,30 @@ class nn_NL_Model(nn.Module):
         )
 
     def forward(self, x):
-        x = self.conv_block_1(x)
-        x = self.conv_block_2(x)
-        x = self.classifier(x)
-        return x
+        return self.classifier(self.conv_block_2(self.conv_block_1(x)))
 
 model_1 = nn_NL_Model(input_shape=1, hidden_units=10, output_shape=len(class_names)).to(device)
 
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model_1.parameters(), lr=0.01)
 
-train = True
-show_model_quality = False
+epochs = 25
+train = False
+show_model_quality = True
 if train:
-    train_model(model=model_1, 
-                train_dataloader=train_dataloader, 
-                test_dataloader=test_dataloader, 
-                loss_fn=loss_fn, 
-                optimizer=optimizer,
-                epochs=10, 
-                device=device)
-    
+    start_training = timer()
+    model_results = helper_fn.train_model(model=model_1, 
+                                            train_dataloader=train_dataloader, 
+                                            test_dataloader=test_dataloader, 
+                                            loss_fn=loss_fn, 
+                                            optimizer=optimizer,
+                                            epochs=epochs, 
+                                            device=device)
+
+    end_training = timer()
+    total_train_time = helper_fn.print_train_time(start=start_training, end=end_training, device=device)
+    helper_fn.plot_loss_curves(model_results, epochs)
+
     MODEL_PATH = Path("./models")
     MODEL_PATH.mkdir(parents=True, exist_ok=True)
     MODEL_NAME = "nl_model_1.pth"
@@ -101,11 +104,11 @@ else:
             test_samples.append(sample)
             test_labels.append(label)
 
-        pred_probs = make_predictions(model=loaded_model_1, data=test_samples, device=device)
+        pred_probs = helper_fn.make_predictions(model=loaded_model_1, data=test_samples, device=device)
         pred_classes = pred_probs.argmax(dim=1)
 
-        plot_model_predictions(pred_probs=pred_probs, pred_classes=pred_classes, test_labels=test_labels, test_samples=test_samples, class_names=class_names)
-        p_confusion_matrix(model=loaded_model_1, test_data_loader=test_dataloader, data=test_dataset, class_names=class_names, device=device)
+        helper_fn.plot_model_predictions(pred_probs=pred_probs, pred_classes=pred_classes, test_labels=test_labels, test_samples=test_samples, class_names=class_names)
+        helper_fn.p_confusion_matrix(model=loaded_model_1, test_data_loader=test_dataloader, data=test_dataset, class_names=class_names, device=device)
 
     else:
         img = Image.open("./test_img/img_1.jpg")
