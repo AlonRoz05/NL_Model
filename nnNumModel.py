@@ -11,7 +11,7 @@ import random
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-train_dataset = datasets.MNIST(root="./data",
+train_dataset = datasets.EMNIST(root="./data",
                                 split="balanced",
                                 train=True, 
                                 download=True, 
@@ -22,7 +22,7 @@ train_dataset = datasets.MNIST(root="./data",
                                 ]),
                                 target_transform=None)
 
-test_dataset = datasets.MNIST(root="./data",
+test_dataset = datasets.EMNIST(root="./data",
                                 split="balanced",
                                 train=False, 
                                 download=True, 
@@ -71,7 +71,7 @@ optimizer = torch.optim.SGD(model_1.parameters(), lr=0.01)
 
 epochs = 25
 train = False
-show_model_quality = True
+show_model_quality = False
 if train:
     start_training = timer()
     model_results = helper_fn.train_model(model=model_1, 
@@ -83,7 +83,7 @@ if train:
                                             device=device)
 
     end_training = timer()
-    total_train_time = helper_fn.print_train_time(start=start_training, end=end_training, device=device)
+    print(f"Total training time {end_training-start_training:.3f} on {device}")
     helper_fn.plot_loss_curves(model_results, epochs)
 
     MODEL_PATH = Path("./models")
@@ -111,8 +111,14 @@ else:
         helper_fn.p_confusion_matrix(model=loaded_model_1, test_data_loader=test_dataloader, data=test_dataset, class_names=class_names, device=device)
 
     else:
-        img = Image.open("./test_img/img_1.jpg")
-        img_tensor = ToTensor()(img).unsqueeze(0).to(device)
+        transforms_stack = transforms.Compose([
+            transforms.Resize(size=(28, 28)),
+            transforms.Grayscale(), 
+            ToTensor()
+        ])
+
+        img = Image.open("./test_img/test_img_1.jpg")
+        img_tensor = transforms_stack(img).unsqueeze(0).to(device)
         model_choice = loaded_model_1(img_tensor).argmax(dim=1)
         print(f"The model's choice: {class_names[model_choice.item()]}")
 

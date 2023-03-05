@@ -11,12 +11,6 @@ def accuracy_fn(y_true, y_pred):
     accuracy = (correct / len(y_true)) * 100
     return accuracy
 
-def print_train_time(start: float, end: float, device: torch.device = None):
-    """Prints the train time for a given training end and start time"""
-    total_time = end - start
-    print(f"Training time on {device}: {total_time:.3f} seconds")
-    return total_time
-
 def eval_model(model: torch.nn.Module, data_loader: torch.utils.data.DataLoader, loss_fn: torch.nn.Module, accuracy_fn):
     """Evaluates the model on a given training data loader and loss function and return the results"""
     loss, acc = 0, 0
